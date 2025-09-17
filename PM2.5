@@ -1,14 +1,98 @@
-import random
+# Tidal Spiral Visualization using pygame
+# 读取 tides_processed.csv 并将潮汐数据以螺旋动画方式展示
 
-def generate_pm25_data(days=7):
-    """生成一周的PM2.5浓度模拟数据"""
-    data = []
-    for day in range(days):
-        pm25 = round(random.uniform(10, 150), 2)
-        data.append(pm25)
-    return data
+import pygame
+import csv
+import math
+import sys
 
-if __name__ == "__main__":
-    pm25_data = generate_pm25_data()
-    print("一周PM2.5浓度数据:", pm25_data)
-    
+# 配置参数
+WIDTH, HEIGHT = 900, 900
+BG_COLOR = (10, 10, 30)
+SPIRAL_COLOR = (0, 200, 255)
+FPS = 60
+import os
+CSV_FILE = os.path.join(os.path.dirname(__file__), 'tides_processed.csv')
+
+# 读取潮汐数据
+def load_tide_data(csv_file):
+	times = []
+	levels = []
+	try:
+		with open(csv_file, 'r', encoding='utf-8') as f:
+			reader = csv.DictReader(f)
+			for row in reader:
+				try:
+					levels.append(float(row['tide_level']))
+					times.append(row['datetime'])
+				except Exception:
+					continue
+	except FileNotFoundError:
+		print(f'未找到文件: {csv_file}')
+		sys.exit(1)
+	return times, levels
+
+# 归一化潮汐数据到 0-1
+def normalize(data):
+	min_v, max_v = min(data), max(data)
+	return [(v - min_v) / (max_v - min_v) if max_v > min_v else 0.5 for v in data]
+
+def main():
+	pygame.init()
+	screen = pygame.display.set_mode((WIDTH, HEIGHT))
+	pygame.display.set_caption('Tidal Spiral Visualization')
+	clock = pygame.time.Clock()
+
+	times, levels = load_tide_data(CSV_FILE)
+	norm_levels = normalize(levels)
+
+	running = True
+	frame = 0
+	n_points = len(norm_levels)
+
+	while running:
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				running = False
+
+		screen.fill(BG_COLOR)
+
+		# 动态螺旋参数
+		spiral_center = (WIDTH // 2, HEIGHT // 2)
+		base_radius = 60
+		max_radius = min(WIDTH, HEIGHT) // 2 - 40
+		angle_step = 2 * math.pi / n_points
+
+		# 动画推进
+		offset = (frame % n_points)
+
+		points = []
+		for i in range(n_points):
+			idx = (i + offset) % n_points
+			# 螺旋半径由潮汐高度控制
+			radius = base_radius + norm_levels[idx] * (max_radius - base_radius)
+			angle = i * angle_step + frame * 0.01
+			x = spiral_center[0] + radius * math.cos(angle)
+			y = spiral_center[1] + radius * math.sin(angle)
+			points.append((x, y))
+
+		# 绘制螺旋
+		if len(points) > 1:
+			pygame.draw.aalines(screen, SPIRAL_COLOR, False, points)
+
+		# 可选：绘制当前点
+		cur_idx = offset
+		cur_radius = base_radius + norm_levels[cur_idx] * (max_radius - base_radius)
+		cur_angle = cur_idx * angle_step + frame * 0.01
+		cur_x = spiral_center[0] + cur_radius * math.cos(cur_angle)
+		cur_y = spiral_center[1] + cur_radius * math.sin(cur_angle)
+		pygame.draw.circle(screen, (255, 100, 100), (int(cur_x), int(cur_y)), 8)
+
+		pygame.display.flip()
+		frame += 1
+		clock.tick(FPS)
+
+	pygame.quit()
+
+if __name__ == '__main__':
+	main()
