@@ -1,0 +1,14 @@
+import random
+
+def generate_pm25_data(days=7):
+    """生成一周的PM2.5浓度模拟数据"""
+    data = []
+    for day in range(days):
+        pm25 = round(random.uniform(10, 150), 2)
+        data.append(pm25)
+    return data
+
+if __name__ == "__main__":
+    pm25_data = generate_pm25_data()
+    print("一周PM2.5浓度数据:", pm25_data)
+    
