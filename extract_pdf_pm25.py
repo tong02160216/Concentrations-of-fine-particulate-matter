@@ -1,3 +1,4 @@
+
 import pandas as pd
 import pygame
 import math
@@ -18,8 +19,6 @@ def extract_total_pm25_from_csv(csv_path):
         engine='c',
         nrows=300
     )
-    
-    # 使用向量化操作提高效率
     df = df.dropna(subset=['Location', 'FactValueNumericLow'])
     df['Location'] = df['Location'].str.strip()
     data = list(zip(df['Location'], df['FactValueNumericLow']))
@@ -29,23 +28,6 @@ def normalize(data):
     min_v, max_v = min(data), max(data)
     return [(v - min_v) / (max_v - min_v) if max_v > min_v else 0.5 for v in data]
 
-def interpolate_data(values, labels, interp_num=1):
-    """插值函数"""
-    n = len(values)
-    dense_values = []
-    dense_labels = []
-    
-    for i in range(n):
-        next_i = (i + 1) % n
-        dense_values.append(values[i])
-        dense_labels.append(labels[i])
-        
-        for k in range(1, interp_num + 1):
-            interp = values[i] + (values[next_i] - values[i]) * k / (interp_num + 1)
-            dense_values.append(interp)
-            dense_labels.append(f'{labels[i]}-{labels[next_i]}')
-    
-    return dense_values, dense_labels
 
 def main():
     # 颜色变量和插值函数提前定义
@@ -164,12 +146,53 @@ def main():
 
     running = True
     frame = 0
+    # 背景圆属性，缓慢变化实现
+    num_circles = 30
+    bg_circles = []
+    # 初始化圆属性
+    for i in range(num_circles):
+        angle = random.uniform(0, 2 * math.pi)
+        dist = random.uniform(60, max_radius * 0.95)
+        x = spiral_center[0] + dist * math.cos(angle)
+        y = spiral_center[1] + dist * math.sin(angle)
+        radius = random.randint(12, 38)
+        fade = 220 - int(120 * i / num_circles)
+        alpha = 60  # 更高透明度
+        color = (fade, fade, fade, alpha)
+        dx = random.uniform(-0.7, 0.7)
+        dy = random.uniform(-0.7, 0.7)
+        dr = random.uniform(-0.13, 0.13)
+        bg_circles.append({'x': x, 'y': y, 'radius': radius, 'color': color, 'dx': dx, 'dy': dy, 'dr': dr})
+
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
         screen.fill(BG_COLOR)
+
+        # 每帧微调圆的位置和半径，实现缓慢变化
+        for c in bg_circles:
+            c['x'] += c['dx']
+            c['y'] += c['dy']
+            c['radius'] += c['dr']
+            c['dx'] += random.uniform(-0.03, 0.03)
+            c['dy'] += random.uniform(-0.03, 0.03)
+            c['dr'] += random.uniform(-0.012, 0.012)
+            dist = math.hypot(c['x'] - spiral_center[0], c['y'] - spiral_center[1])
+            max_dist = max_radius * 0.93
+            if dist > max_dist:
+                angle = math.atan2(c['y'] - spiral_center[1], c['x'] - spiral_center[0])
+                c['x'] = spiral_center[0] + max_dist * math.cos(angle)
+                c['y'] = spiral_center[1] + max_dist * math.sin(angle)
+                c['dx'] *= -0.5
+                c['dy'] *= -0.5
+            c['radius'] = max(8, min(48, c['radius']))
+            # 使用Surface实现透明度
+            circle_surf = pygame.Surface((int(c['radius']*2+2), int(c['radius']*2+2)), pygame.SRCALPHA)
+            pygame.draw.circle(circle_surf, c['color'], (int(c['radius'])+1, int(c['radius'])+1), int(c['radius']), 0)
+            screen.blit(circle_surf, (int(c['x']-c['radius']), int(c['y']-c['radius'])))
+
         offset = (frame % n_points)
 
         # 动态渐变权重
