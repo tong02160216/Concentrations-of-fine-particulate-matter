@@ -7,7 +7,7 @@ import heapq
 import random
 
 WIDTH, HEIGHT = 900, 900
-BG_COLOR = (10, 10, 30)
+BG_COLOR = (255, 255, 255)
 FPS = 30
 
 def extract_total_pm25_from_csv(csv_path):
@@ -155,10 +155,12 @@ def main():
         dist = random.uniform(60, max_radius * 0.95)
         x = spiral_center[0] + dist * math.cos(angle)
         y = spiral_center[1] + dist * math.sin(angle)
-        radius = random.randint(12, 38)
-        fade = 220 - int(120 * i / num_circles)
-        alpha = 60  # 更高透明度
-        color = (fade, fade, fade, alpha)
+        radius = random.randint(12, 44)
+        # 纯度（亮度）和透明度都随机
+        fade = random.randint(160, 230)
+        alpha = random.randint(38, 80)
+        # 淡蓝色：R低，G略高，B高
+        color = (int(fade*0.7), int(fade*0.85), fade, alpha)
         dx = random.uniform(-0.7, 0.7)
         dy = random.uniform(-0.7, 0.7)
         dr = random.uniform(-0.13, 0.13)
@@ -169,7 +171,26 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
 
-        screen.fill(BG_COLOR)
+        # 只生成一次径向渐变背景，提高性能
+        if frame == 0:
+            grad_center = (spiral_center[0], spiral_center[1])
+            grad_r = int(max_radius * 1.05)
+            color_center = (220, 200, 255)
+            color_edge = (255, 255, 255)
+            bg_surf = pygame.Surface((WIDTH, HEIGHT))
+            for y in range(HEIGHT):
+                for x in range(WIDTH):
+                    dist = math.hypot(x - grad_center[0], y - grad_center[1])
+                    t = min(dist / grad_r, 1.0)
+                    col = (
+                        int(color_center[0] * (1-t) + color_edge[0] * t),
+                        int(color_center[1] * (1-t) + color_edge[1] * t),
+                        int(color_center[2] * (1-t) + color_edge[2] * t)
+                    )
+                    bg_surf.set_at((x, y), col)
+        if frame == 0:
+            cached_bg = bg_surf.copy()
+        screen.blit(cached_bg, (0, 0))
 
         # 每帧微调圆的位置和半径，实现缓慢变化
         for c in bg_circles:
