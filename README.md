@@ -1,7 +1,6 @@
-# 项目创意说明
 
 # Project Creative Statement
-The theme of the project is smog. Short lines extending in all directions simulate the shape of fireworks bursting, metaphorically representing the scene of excessive emission of pollutants such as fireworks. The light blue circles in the background not only resemble the hazy light and shadow after being shrouded in smog, but also can represent the pollution circle formed by the pervading smog, intuitively showing the impact of smog on the environment and making the connection between the image elements and the theme of smog more pictorial and narrative.
+The theme of this project is smog. Short lines radiating in all directions simulate the shape of fireworks bursting, metaphorically representing the excessive emission of pollutants such as fireworks. The light blue circles in the background not only resemble the hazy light and shadow created by smog, but also represent the pollution circles formed by the spreading smog. This intuitively shows the impact of smog on the environment and makes the connection between the visual elements and the theme of smog more vivid and narrative.
 
 # PM2.5 Visualization Animation Project
 
