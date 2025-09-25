@@ -235,15 +235,14 @@ def main():
             end_pos = (spiral_center[0] + radius * math.cos(angle), spiral_center[1] + radius * math.sin(angle))
             pygame.draw.aaline(screen, color, start_pos, end_pos)
 
-        # 显示当前国家名和数值（渐变）
-        cur_idx = offset
-        value1 = levels[cur_idx]
-        value2 = levels2[cur_idx]
-        show_value = (1 - alpha) * value1 + alpha * value2
-        show_country = countries[cur_idx]
-        font = pygame.font.SysFont(None, 36)
-        country_text = font.render(f'{show_country}: {show_value:.2f}', True, (255, 255, 255))
-        screen.blit(country_text, (20, 20))
+        # 左上角只显示一行地区名和数值，每秒切换
+        font = pygame.font.SysFont(None, 28)
+        x0, y0 = 18, 18
+        # 每秒切换一个地区
+        idx = (frame // FPS) % len(countries)
+        txt = f'{countries[idx]}: {levels[idx]:.2f}'
+        country_text = font.render(txt, True, (40, 40, 80))
+        screen.blit(country_text, (x0, y0))
 
         pygame.display.flip()
         frame += 1
