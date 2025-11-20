@@ -47,7 +47,7 @@ def main():
         avg = sum(rgb) // 3
         return tuple(int(avg * factor + c * (1 - factor)) for c in rgb)
 
-    pm25_data = extract_total_pm25_from_csv('f:/code/PM2.5/data.csv')
+    pm25_data = extract_total_pm25_from_csv('f:/code/PM2.5/Concentrations-of-fine-particulate-matter/data.csv')
     if not pm25_data:
         print('未提取到数据，无法可视化。')
         sys.exit(1)
